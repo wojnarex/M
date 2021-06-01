@@ -1,0 +1,18 @@
+## Get table of map keys of JSON shape map visual in Power BI
+### https://stackoverflow.com/questions/58593782/get-table-of-map-keys-of-json-shape-map-visual-in-power-bi
+
+let
+    Source = Json.Document(File.Contents("C:\Users\User\OneDrive - BlueSoft Sp. z o.o\Dokumenty\2. DLPP Anniversary\world-countries.json")),
+    #"Converted to Table" = Record.ToTable(Source),
+    Value1 = #"Converted to Table"{3}[Value],
+    #"Converted to Table1" = Record.ToTable(Value1),
+    Value2 = #"Converted to Table1"{0}[Value],
+    geometries = Value2[geometries],
+    #"Converted to Table2" = Table.FromList(geometries, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table2", "Column1", {"arcs", "type", "properties"}, {"arcs", "type", "properties"}),
+    #"Removed Other Columns" = Table.SelectColumns(#"Expanded Column1",{"properties"}),
+    ColumnNames = Record.FieldNames(#"Removed Other Columns"[properties]{0}),
+    ExpandProperties = Table.ExpandRecordColumn(#"Removed Other Columns", "properties", ColumnNames, ColumnNames),
+    #"Changed Type" = Table.TransformColumnTypes(ExpandProperties,{{"name", type text}, {"Alpha-2", type text}})
+in 
+    #"Changed Type"
